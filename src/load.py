@@ -32,7 +32,7 @@ def load_data(df, SERVER, DATABASE):
         country_map = pd.read_sql("SELECT country_id, country FROM dim_country", conn)
         # Customer dimension
         dim_customer = (
-            df[["customer_id", "country"]]
+            df[["customer_id", "country"]].drop_duplicates(subset=["customer_id"]).merge(country_map, on="country", how="left")[["customer_id", "country_id"]].reset_index(drop=True)
         )
         dim_customer.to_sql("dim_customer", con=conn, if_exists="append", index=False)
         # Date dimension
