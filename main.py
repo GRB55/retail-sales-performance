@@ -4,7 +4,7 @@ from src.load import load_data
 import pandas as pd
 
 # Server where the database is stored
-SERVER = "localhost\MSSQLSERVER2022"
+SERVER = r"localhost\MSSQLSERVER2022"
 # Database to be used
 DATABASE = "OnlineRetail"
 
