@@ -11,7 +11,7 @@ def load_data(df, SERVER, DATABASE):
     connection_string = (
         f"mssql+pyodbc://@{SERVER}/{DATABASE}?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes"
     )
-    # Database management
+    # Database management 
     engine = create_engine(connection_string, fast_executemany=True)
     
     with engine.begin() as conn:
@@ -42,14 +42,17 @@ def load_data(df, SERVER, DATABASE):
         dim_date.to_sql("dim_date", con=conn, if_exists="append", index=False)
         # IDs
         date_map = pd.read_sql("SELECT date_id, full_date FROM dim_date", conn)
-        # Sales fact table
+        # Sales fact table development
         fact = df.copy()
+        # Add the product_id
         fact = fact.merge(
             product_map,
             left_on="Stockcode", right_on="stock_code",
             how="left"
         )
+        # Normalize the date to truncate the hours and minutes
         fact["full_date"] = pd.to_datetime(fact["InvoiceDate"]).dt.normalize()
+        # Add the date_id
         fact = fact.merge(
             date_map,
             on="full_date",
