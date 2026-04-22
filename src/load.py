@@ -32,7 +32,7 @@ def load_data(df, SERVER, DATABASE):
         dim_customer.to_sql("dim_customer", con=conn, if_exists="append", index=False)
         # Date dimension
         dim_date = (
-            df[["full_date", "year", "quarter", "month", "month_name", "week", "day", "day_name", "is_weekend"]].drop_duplicates(subset=["full_date"])
+            df[["full_date", "year", "quarter", "month", "month_name", "week", "day", "day_name", "is_weekend"]].drop_duplicates(subset=["full_date"]).reset_index(drop=True)
         )
         dim_date.to_sql("dim_date", con=conn, if_exists="append", index=False)
         # IDs
@@ -42,11 +42,11 @@ def load_data(df, SERVER, DATABASE):
         # Add the product_id
         fact = fact.merge(
             product_map,
-            left_on="Stockcode", right_on="stock_code",
+            left_on="stock_code", right_on="stock_code",
             how="left"
         )
         # Normalize the date to truncate the hours and minutes
-        fact["full_date"] = pd.to_datetime(fact["InvoiceDate"]).dt.normalize()
+        fact["full_date"] = pd.to_datetime(fact["full_date"]).dt.normalize()
         # Add the date_id
         fact = fact.merge(
             date_map,
@@ -54,7 +54,7 @@ def load_data(df, SERVER, DATABASE):
             how="left"
         )
         fact_sales = (
-            fact[["product_id", "customer_id", "date_id", "invoice", "quantity", "price", "total_amount", "is_return"]].reset_index(drop=True)
+            fact[["product_id", "customer_id", "date_id", "invoice", "quantity", "unit_price", "total_amount", "is_return"]].reset_index(drop=True)
         )
         fact_sales.to_sql("fact_sales", con=conn, if_exists="append", index=False)
         

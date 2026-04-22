@@ -61,9 +61,9 @@ def transform(df:pd.DataFrame):
         # Drop duplicates
         df_transformed = df_transformed.drop_duplicates()
         # Map country aliases and create the region
-        df_transformed["Country"] = df_transformed["Country"].str.replace("USA", "United States of America")
-        df_transformed["Country"] = df_transformed["Country"].str.replace("RSA", "Republic of South Africa")
-        df_transformed["Country"] = df_transformed["Country"].str.replace("EIRE", "Ireland")
+        df_transformed["Country"] = df_transformed["Country"].str.replace("USA", "United States of America", regex=False)
+        df_transformed["Country"] = df_transformed["Country"].str.replace("RSA", "Republic of South Africa", regex=False)
+        df_transformed["Country"] = df_transformed["Country"].str.replace("EIRE", "Ireland", regex=False)
         df_transformed["region"] = df_transformed["Country"].map(country_region)
         # Fill customerid nulls with -1
         df_transformed["Customer ID"] = df_transformed["Customer ID"].fillna(-1)
@@ -78,13 +78,13 @@ def transform(df:pd.DataFrame):
         # Total amount
         df_transformed["total_amount"] = df_transformed["Quantity"] * df_transformed["Price"]
         # Product base code
-        df_transformed["product_base_code"] = df_transformed["StockCode"].astype(str).str.extract(r"(^\d+$)")
+        df_transformed["product_base_code"] = df_transformed["StockCode"].astype(str).str.extract(r"^(\d+)")
         # Flags
         df_transformed["is_weekend"] = df_transformed["InvoiceDate"].dt.day_of_week >= 5
         df_transformed["is_return"] = df_transformed["Invoice"].astype(str).str.startswith("C")
         df_transformed["is_variant"] = df_transformed["StockCode"].astype(str).str.match(r"^\d+[A-Za-z]+$")
         # Rename columns to match the database ones
-        df.rename(columns={"Invoice": "invoice",
+        df_transformed.rename(columns={"Invoice": "invoice",
                            "StockCode": "stock_code",
                            "Description": "description",
                            "Quantity":" quantity",
