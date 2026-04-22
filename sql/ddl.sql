@@ -1,9 +1,10 @@
+DROP TABLE IF EXISTS OnlineRetail;
 CREATE DATABASE OnlineRetail;
 USE OnlineRetail;
 CREATE TABLE dim_product
     (
         product_id        INT IDENTITY PRIMARY KEY,
-        stockcode         NVARCHAR(10) NOT NULL   ,
+        stock_code         NVARCHAR(10) NOT NULL   ,
         product_base_code NVARCHAR(10) NOT NULL            ,
         description       NVARCHAR(256) NOT NULL  ,
         has_variants      BIT NOT NULL DEFAULT 0

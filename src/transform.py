@@ -64,23 +64,34 @@ def transform(df:pd.DataFrame):
         df_transformed["Country"] = df_transformed["Country"].str.replace("USA", "United States of America")
         df_transformed["Country"] = df_transformed["Country"].str.replace("RSA", "Republic of South Africa")
         df_transformed["Country"] = df_transformed["Country"].str.replace("EIRE", "Ireland")
-        df_transformed["Region"] = df_transformed["Country"].map(country_region)
+        df_transformed["region"] = df_transformed["Country"].map(country_region)
         # Fill customerid nulls with -1
         df_transformed["Customer ID"] = df_transformed["Customer ID"].fillna(-1)
         # Date data for the calendar table
-        df_transformed["Year"] = df_transformed["InvoiceDate"].dt.year
-        df_transformed["Quarter"] = df_transformed["InvoiceDate"].dt.quarter
-        df_transformed["Month"] = df_transformed["InvoiceDate"].dt.month
-        df_transformed["Month_name"] = df_transformed["InvoiceDate"].dt.month_name()
-        df_transformed["Week"] = df_transformed["InvoiceDate"].dt.strftime("%W") # Week of the year, starting Monday. If we want to start on Sunday we should use '%U'.
-        df_transformed["Day"] = df_transformed["InvoiceDate"].dt.day
-        df_transformed["Day_name"] = df_transformed["InvoiceDate"].dt.day_name()
+        df_transformed["year"] = df_transformed["InvoiceDate"].dt.year
+        df_transformed["quarter"] = df_transformed["InvoiceDate"].dt.quarter
+        df_transformed["month"] = df_transformed["InvoiceDate"].dt.month
+        df_transformed["month_name"] = df_transformed["InvoiceDate"].dt.month_name()
+        df_transformed["week"] = df_transformed["InvoiceDate"].dt.strftime("%W") # Week of the year, starting Monday. If we want to start on Sunday we should use '%U'.
+        df_transformed["day"] = df_transformed["InvoiceDate"].dt.day
+        df_transformed["day_name"] = df_transformed["InvoiceDate"].dt.day_name()
         # Total amount
-        df_transformed["Total_amount"] = df_transformed["Quantity"] * df_transformed["Price"]
+        df_transformed["total_amount"] = df_transformed["Quantity"] * df_transformed["Price"]
+        # Product base code
+        df_transformed["product_base_code"] = df_transformed["StockCode"].astype(str).str.extract(r"(^\d+$)")
         # Flags
-        df_transformed["Is_weekend"] = df_transformed["InvoiceDate"].dt.day_of_week >= 5
-        df_transformed["Is_return"] = df_transformed["Invoice"].astype(str).str.startswith("C")
-        df_transformed["Is_variant"] = df_transformed["StockCode"].astype(str).str.match(r"^\d+[A-Za-z]+$")
+        df_transformed["is_weekend"] = df_transformed["InvoiceDate"].dt.day_of_week >= 5
+        df_transformed["is_return"] = df_transformed["Invoice"].astype(str).str.startswith("C")
+        df_transformed["is_variant"] = df_transformed["StockCode"].astype(str).str.match(r"^\d+[A-Za-z]+$")
+        # Rename columns to match the database ones
+        df.rename(columns={"Invoice": "invoice",
+                           "StockCode": "stock_code",
+                           "Description": "description",
+                           "Quantity":" quantity",
+                           "InvoiceDate": "full_date",
+                           "Price": "unit_price",
+                           "Customer ID": "customer_id",
+                           "Country": "country"}, inplace=True)
         
         print("=== AFTER TRANSFORMATION ===")
         print(f"Quantity of rows: {df_transformed.shape[0]}")
