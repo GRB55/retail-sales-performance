@@ -29,8 +29,6 @@ def extract_data(parent_folder:str, subfolder:str, file:str, sheet=0) -> pd.Data
                 print("El archivo tiene varias hojas, seleccione una:")
                 print(pd.ExcelFile(file_path).sheet_names)
                 raise ValueError("Debe especificar la hoja con el parámetro 'sheet'")
-            
-            
         return pd.read_excel(file_path, sheet_name=sheet)
     else:
         return "Load a .csv or .xlsx file."
