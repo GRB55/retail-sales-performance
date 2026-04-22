@@ -1,11 +1,6 @@
 from sqlalchemy import create_engine
 import pandas as pd
 
-# Server where the database is stored
-SERVER = "localhost\MSSQLSERVER2022"
-# Database to be used
-DATABASE = "OnlineRetail"
-
 def load_data(df, SERVER, DATABASE):
     # Database connection
     connection_string = (
