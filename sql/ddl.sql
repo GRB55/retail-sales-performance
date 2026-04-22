@@ -4,9 +4,9 @@ CREATE TABLE dim_product
     (
         product_id        INT IDENTITY PRIMARY KEY,
         stockcode         NVARCHAR(10) NOT NULL   ,
-        product_base_code INT NOT NULL            ,
+        product_base_code NVARCHAR(10) NOT NULL            ,
         description       NVARCHAR(256) NOT NULL  ,
-        has_variants      BIT NULL
+        has_variants      BIT NOT NULL DEFAULT 0
     )
 ;
 CREATE TABLE dim_country
@@ -46,5 +46,5 @@ CREATE TABLE fact_sales
         quantity     INT NOT NULL                                        ,
         unit_price   DECIMAL(10, 2) NOT NULL                             ,
         total_amount DECIMAL(10, 2) NOT NULL                             ,
-        is_return    BIT NOT NULL DEFAULT = 0
+        is_return    BIT NOT NULL DEFAULT 0
     );

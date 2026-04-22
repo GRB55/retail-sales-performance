@@ -1,20 +1,94 @@
 # Data manipulation
 import pandas as pd
 
-try:
-    def transform(df:pd.DataFrame):
-        df = df[df["Description"].notna() &
-            (df["Quantity"] > 0) &
-            (df["Price"] > 0) &
-            (~df["Invoice"].astype(str).str.contains("C"))]
-        df = df.drop_duplicates()
-        df["Customer ID"] = df["Customer ID"].fillna("Unknown")
-        df["Customer ID"] = df["Customer ID"].astype(str)
-        df = df[df["StockCode"].astype(str).str.match(r"^\d+$")]
-        df_cancellations = df[df["Invoice"].astype(str).str.contains("C")]
-        df_variant = df[df["StockCode"].astype(str).str.match(r"^\d+[A-Za-z]+$")]
-        df_special = df[df["StockCode"].astype(str).str.match(r"[A-Za-z]")]
+
+def transform(df:pd.DataFrame):
+    try:
+        print("=== BEFORE TRANSFORMATION ===")
+        print(f"Quantity of rows: {df.shape[0]}")
+        print(f"Quantity of columns: {df.shape[1]}")
+        print(f"Total data: {df.size}")
+        print(f"Duplicated values: {df.duplicated().sum()}")
+        print(f"Null values: {df.isna().sum().sum()}")
+        # Dictionary to map the region to the existing country
+        country_region = {
+        "United Kingdom": "Western Europe",
+        "France": "Western Europe",
+        "Belgium": "Western Europe",
+        "Germany": "Western Europe",
+        "Portugal": "Western Europe",
+        "Netherlands": "Western Europe",
+        "Spain": "Western Europe",
+        "Italy": "Western Europe",
+        "Austria": "Western Europe",
+        "Switzerland": "Western Europe",
+        "Ireland": "Western Europe",
+        "Channel Islands": "Western Europe", 
+        "Denmark": "Northern Europe",
+        "Norway": "Northern Europe",
+        "Sweden": "Northern Europe",
+        "Finland": "Northern Europe",
+        "Iceland": "Northern Europe",
+        "Lithuania": "Northern Europe",
+        "Cyprus": "Southern Europe",
+        "Greece": "Southern Europe",
+        "Malta": "Southern Europe",
+        "Poland": "Eastern Europe",
+        "Czech Republic": "Eastern Europe",
+        "European Community" : "Western Europe",
+        "United Arab Emirates": "Middle East",
+        "Bahrain": "Middle East",
+        "Israel": "Middle East",
+        "Lebanon": "Middle East",
+        "Saudi Arabia": "Middle East",
+        "Japan": "East Asia",
+        "Hong Kong": "East Asia",
+        "Singapore": "East Asia",
+        "Korea": "East Asia",
+        "Thailand": "Southeast Asia",
+        "Australia": "Oceania",
+        "Nigeria": "Africa",
+        "Republic of South Africa": "Africa",         
+        "United States of America": "North America",
+        "Canada": "North America",
+        "Bermuda": "Caribbean",
+        "West Indies": "Caribbean",
+        "Brazil": "South America",
+        "Unspecified": "Unknown"
+        }
+        # Filter data errors
+        df_transformed = df[df["Description"].notna()].copy()
+        # Drop duplicates
+        df_transformed = df_transformed.drop_duplicates()
+        # Map country aliases and create the region
+        df_transformed["Country"] = df_transformed["Country"].str.replace("USA", "United States of America")
+        df_transformed["Country"] = df_transformed["Country"].str.replace("RSA", "Republic of South Africa")
+        df_transformed["Country"] = df_transformed["Country"].str.replace("EIRE", "Ireland")
+        df_transformed["Region"] = df_transformed["Country"].map(country_region)
+        # Fill customerid nulls with -1
+        df_transformed["Customer ID"] = df_transformed["Customer ID"].fillna(-1)
+        # Date data for the calendar table
+        df_transformed["Year"] = df_transformed["InvoiceDate"].dt.year
+        df_transformed["Quarter"] = df_transformed["InvoiceDate"].dt.quarter
+        df_transformed["Month"] = df_transformed["InvoiceDate"].dt.month
+        df_transformed["Month_name"] = df_transformed["InvoiceDate"].dt.month_name()
+        df_transformed["Week"] = df_transformed["InvoiceDate"].dt.strftime("%W") # Week of the year, starting Monday. If we want to start on Sunday we should use '%U'.
+        df_transformed["Day"] = df_transformed["InvoiceDate"].dt.day
+        df_transformed["Day_name"] = df_transformed["InvoiceDate"].dt.day_name()
+        # Total amount
+        df_transformed["Total_amount"] = df_transformed["Quantity"] * df_transformed["Price"]
+        # Flags
+        df_transformed["Is_weekend"] = df_transformed["InvoiceDate"].dt.day_of_week >= 5
+        df_transformed["Is_return"] = df_transformed["Invoice"].astype(str).str.startswith("C")
+        df_transformed["Is_variant"] = df_transformed["StockCode"].astype(str).str.match(r"^\d+[A-Za-z]+$")
         
-        return df
-except Exception as e:
-    print(f"Something happened in the transformation, {e} raised, check the function.")
+        print("=== AFTER TRANSFORMATION ===")
+        print(f"Quantity of rows: {df_transformed.shape[0]}")
+        print(f"Quantity of columns: {df_transformed.shape[1]}")
+        print(f"Total data: {df_transformed.size}")
+        print(f"Duplicate values: {df_transformed.duplicated().sum()}")
+        print(f"Null values: {df_transformed.isna().sum().sum()}")
+        
+        return df_transformed
+    except Exception as e:
+        print(f"Something happened in the transformation, {e} raised, check the function.")
