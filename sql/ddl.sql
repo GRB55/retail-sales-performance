@@ -1,6 +1,9 @@
-DROP TABLE IF EXISTS OnlineRetail;
+DROP DATABASE IF EXISTS OnlineRetail;
+GO
 CREATE DATABASE OnlineRetail;
+GO
 USE OnlineRetail;
+GO
 CREATE TABLE dim_product
     (
         product_id        INT IDENTITY PRIMARY KEY,

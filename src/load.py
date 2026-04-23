@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import pandas as pd
 
 def load_data(df, SERVER, DATABASE):
@@ -10,6 +10,12 @@ def load_data(df, SERVER, DATABASE):
     engine = create_engine(connection_string, fast_executemany=True)
     
     with engine.begin() as conn:
+        # Idempotence
+        conn.execute(text("DELETE FROM fact_sales"))
+        conn.execute(text("DELETE FROM dim_customer"))
+        conn.execute(text("DELETE FROM dim_date"))
+        conn.execute(text("DELETE FROM dim_country"))
+        conn.execute(text("DELETE FROM dim_product"))
     # Load data
         # Product dimension
         dim_product = (
@@ -25,6 +31,7 @@ def load_data(df, SERVER, DATABASE):
         dim_country.to_sql("dim_country", con=conn, if_exists="append", index=False)
         # IDs 
         country_map = pd.read_sql("SELECT country_id, country FROM dim_country", conn)
+        country_map = country_map.drop_duplicates(subset=["country"])
         # Customer dimension
         dim_customer = (
             df[["customer_id", "country"]].drop_duplicates(subset=["customer_id"]).merge(country_map, on="country", how="left")[["customer_id", "country_id"]].reset_index(drop=True)
@@ -43,11 +50,9 @@ def load_data(df, SERVER, DATABASE):
         # Sales fact table development
         fact = df.copy()
         # Add the product_id
-        fact = fact.merge(
-            product_map,
-            left_on="stock_code", right_on="stock_code",
-            how="left"
-        )
+        fact["stock_code"] = fact["stock_code"].astype(str).str.strip()
+        product_map["stock_code"] = product_map["stock_code"].astype(str).str.strip()
+        fact = fact.merge(product_map, on="stock_code", how="left")
         # Normalize the date to truncate the hours and minutes
         fact["full_date"] = pd.to_datetime(fact["full_date"]).dt.normalize()
         # Add the date_id
