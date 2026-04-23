@@ -1,9 +1,6 @@
-from pathlib import Path
 import pandas as pd
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-def extract_data(parent_folder:str, subfolder:str, file:str, sheet=0) -> pd.DataFrame:
+def extract_data(BASE_DIR, parent_folder:str, subfolder:str, file:str, sheet=0) -> pd.DataFrame:
     """Function to load the data file in a dataframe.
 
     Args:
@@ -27,7 +24,7 @@ def extract_data(parent_folder:str, subfolder:str, file:str, sheet=0) -> pd.Data
         if sheet is None:
             if len(excel) > 1:
                 print("El archivo tiene varias hojas, seleccione una:")
-                print(pd.ExcelFile(file_path).sheet_names)
+                print(excel.sheet_names)
                 raise ValueError("Debe especificar la hoja con el parámetro 'sheet'")
         return pd.read_excel(file_path, sheet_name=sheet)
     else:

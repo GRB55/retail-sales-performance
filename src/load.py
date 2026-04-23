@@ -13,7 +13,7 @@ def load_data(df, SERVER, DATABASE):
     # Load data
         # Product dimension
         dim_product = (
-            df[["stock_code", "product_base_code", "description", "is_variant"]].drop_duplicates(subset=["stock_code"]).reset_index(drop=True)
+            df[["stock_code", "product_base_code", "description", "has_variants"]].drop_duplicates(subset=["stock_code"]).reset_index(drop=True)
         )
         dim_product.to_sql("dim_product", con=conn, if_exists="append", index=False)
         # IDs
@@ -32,11 +32,14 @@ def load_data(df, SERVER, DATABASE):
         dim_customer.to_sql("dim_customer", con=conn, if_exists="append", index=False)
         # Date dimension
         dim_date = (
-            df[["full_date", "year", "quarter", "month", "month_name", "week", "day", "day_name", "is_weekend"]].drop_duplicates(subset=["full_date"]).reset_index(drop=True)
+            df[["full_date", "year", "quarter", "month", "month_name", "week", "day", "day_name", "is_weekend"]]
+            .assign(full_date=pd.to_datetime(df["full_date"]).dt.normalize())
+            .drop_duplicates(subset=["full_date"]).reset_index(drop=True)
         )
         dim_date.to_sql("dim_date", con=conn, if_exists="append", index=False)
         # IDs
         date_map = pd.read_sql("SELECT date_id, full_date FROM dim_date", conn)
+        date_map["full_date"] = pd.to_datetime(date_map["full_date"])
         # Sales fact table development
         fact = df.copy()
         # Add the product_id

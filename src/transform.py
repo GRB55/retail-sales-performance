@@ -57,7 +57,7 @@ def transform(df:pd.DataFrame):
         "Unspecified": "Unknown"
         }
         # Filter data errors
-        df_transformed = df[df["Description"].notna()].copy()
+        df_transformed = df[df["Description"].notna() & (~df["StockCode"].astype(str).str.match(r"[a-z-A-Z]"))].copy()
         # Drop duplicates
         df_transformed = df_transformed.drop_duplicates()
         # Map country aliases and create the region
@@ -82,12 +82,12 @@ def transform(df:pd.DataFrame):
         # Flags
         df_transformed["is_weekend"] = df_transformed["InvoiceDate"].dt.day_of_week >= 5
         df_transformed["is_return"] = df_transformed["Invoice"].astype(str).str.startswith("C")
-        df_transformed["is_variant"] = df_transformed["StockCode"].astype(str).str.match(r"^\d+[A-Za-z]+$")
+        df_transformed["has_variants"] = df_transformed["StockCode"].astype(str).str.match(r"^\d+[A-Za-z]+$")
         # Rename columns to match the database ones
         df_transformed.rename(columns={"Invoice": "invoice",
                            "StockCode": "stock_code",
                            "Description": "description",
-                           "Quantity":" quantity",
+                           "Quantity": "quantity",
                            "InvoiceDate": "full_date",
                            "Price": "unit_price",
                            "Customer ID": "customer_id",
